@@ -4,7 +4,8 @@
 //   - 10 ns clock; rst_n is held low for the first 2 clock cycles
 //   - applies all 256 (a, b) combinations, a new one every 2 clock cycles
 //   - waits for the 2-cycle latency, then compares p with a * b
-//   - prints one line per mismatch and exactly one summary line at the end
+//   - prints one line per mismatch (with the simulation time in ns) and
+//     exactly one summary line at the end
 //   - writes the waveform file mult.vcd
 // Only the ports of mult_array are used, so the same testbench also runs
 // unchanged on the gate-level netlist from Yosys (Part B).
@@ -71,7 +72,7 @@ module tb_mult;
                 vectors  = vectors + 1;
                 if (p !== expected) begin
                     errors = errors + 1;
-                    $display("MISMATCH at %0t ns: a = %0d, b = %0d, expected p = %0d, got p = %0d",
+                    $display("MISMATCH at %0d ns: a = %0d, b = %0d, expected p = %0d, got p = %0d",
                              $time, a, b, expected, p);
                 end
             end

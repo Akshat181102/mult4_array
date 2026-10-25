@@ -30,6 +30,7 @@ mult4_array/
 | Tool container | `hpretl/iic-osic-tools:latest`, image digest `sha256:306585de35d198e70ea58950f77147c86f56c698726a19afea9f1c83009557be` |
 | PDK and cell library | `sky130A`, `sky130_fd_sc_hd`, typical corner `tt_025C_1v80` |
 | Icarus Verilog | 14.0 (devel) |
+| GTKWave | 4.0.0-prealpha (f6d60e0) |
 | Yosys | 0.70 |
 | OpenSTA | 3.1.0 |
 | LibreLane | 3.1.0.dev3 |
@@ -68,7 +69,38 @@ echo $PDK_ROOT $PDK        # /foss/pdks sky130A
 
 ## A. RTL design and verification
 
-*Pending.*
+Files:
+
+- `rtl/full_adder.v`: 1-bit full adder written with `assign` statements.
+- `rtl/mult_array.v`: registered 4-bit array multiplier with 16 AND gates, 12 `full_adder` instances (three `generate` loops) and 16 flip-flops; no `*` operator.
+- `tb/tb_mult.v`: exhaustive self-checking testbench (10 ns clock, all 256 input combinations, 2-cycle latency respected, writes `mult.vcd`).
+
+RTL simulation:
+
+```bash
+iverilog -g2012 -o sim tb/tb_mult.v rtl/full_adder.v rtl/mult_array.v
+vvp sim                    # PASS: 256 vectors checked, 0 errors
+```
+
+Error test: in `rtl/full_adder.v`, `assign sum = a ^ b ^ cin;` was temporarily changed to `assign sum = a ^ b;`, then:
+
+```bash
+iverilog -g2012 -o sim tb/tb_mult.v rtl/full_adder.v rtl/mult_array.v
+vvp sim                    # FAIL: 256 vectors checked, 95 errors
+```
+
+The change was undone on the host with `git restore rtl/full_adder.v`, and the two RTL simulation commands above were run again (PASS).
+
+Waveform:
+
+```bash
+gtkwave --version | head -1
+gtkwave mult.vcd &
+```
+
+Example from roll number 2026203014: A = 4 + 5 = 9, B = 7. The inputs are applied at 3040 ns, captured by the input registers at the rising edge at 3045 ns, and the product p = 63 is registered at the rising edge at 3055 ns, a latency of 2 clock cycles. In GTKWave, `clk`, `rst_n`, `a`, `b` and `p` were added, `a`, `b` and `p` shown in decimal, and two named markers placed at 3045 ns and 3055 ns (Markers → Show-Change Marker Data).
+
+The simulation output of each step was also saved with `| tee` to log files outside the repository, for the report.
 
 ## B. Logic synthesis
 
