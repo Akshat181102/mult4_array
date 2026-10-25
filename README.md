@@ -7,7 +7,7 @@ A 4-bit × 4-bit unsigned array multiplier (16 AND gates, 12 full adders, regist
 | Name | Roll number |
 |---|---|
 | Akshat Agrawal | 2026203014 |
-| *Partner name* | *Partner roll number* |
+| Simon Shibu | 2026203003 |
 
 ## Repository structure
 
