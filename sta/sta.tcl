@@ -1,17 +1,15 @@
 # -----------------------------------------------------------------------------
 # sta.tcl: OpenSTA static timing analysis of the synthesized mult_array netlist
 # Run from the repository root:  sta -exit sta/sta.tcl
-# The clock period T (ns) is set below to T_min = 2.788 ns, found as follows:
-#   T=10 sta -exit sta/sta.tcl      worst slack 7.213 ns, so 10 - 7.213 = 2.787
-#   T=2.787 sta -exit sta/sta.tcl   worst slack -0.000 ns (negative by < 0.5 ps,
-#                                   because 7.213 is rounded to 1 ps)
-# so T_min is rounded up to the next picosecond, 2.788 ns.
+# The clock period T (ns) is set below. A first run at T = 10 ns gave a worst
+# slack WNS = 7.213 ns, so T_min = T - WNS = 2.787 ns. As the assignment asks,
+# T is now T_min rounded to 0.01 ns, 2.79 ns, to confirm a slack close to 0.
 # T=<value> on the command line overrides the period without editing the file.
 # Library: sky130_fd_sc_hd, typical corner (tt, 25 C, 1.80 V); ideal clock and
 # wires (no placement or routing yet)
 # -----------------------------------------------------------------------------
 set lib $::env(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-set T 2.788
+set T 2.79
 if {[info exists ::env(T)]} { set T $::env(T) }
 
 # 1. read the cell library
@@ -31,3 +29,4 @@ report_worst_slack -max -digits 3
 # 7. write the worst setup path of each path group to the timing report
 report_checks -path_delay max -fields {net} -digits 3 > sta/mult_array_timing.rpt
 puts "Critical path written to sta/mult_array_timing.rpt"
+exit
