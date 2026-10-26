@@ -9,7 +9,8 @@
 //
 //   16 flip-flops in total (4 + 4 + 8), latency = 2 clock cycles.
 //   rst_n : asynchronous, active-low reset that clears every register to 0.
-//   The * operator is deliberately not used in this file.
+//   No multiplication operator is used: the product is built only from
+//   AND gates and full_adder instances.
 // -----------------------------------------------------------------------------
 module mult_array (
     input  wire       clk,
