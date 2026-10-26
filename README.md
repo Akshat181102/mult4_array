@@ -133,7 +133,7 @@ The testbench needed no change for the netlist: it checks `p` at the falling clo
 
 Files:
 
-- `sta/sta.tcl`: OpenSTA script with the seven steps (read_liberty with the `tt_025C_1v80` library, read_verilog of the Part B netlist, link_design, create_clock on `clk` with period T, 1 ns input and output delays, report_worst_slack, report_checks of the worst setup path). T is set to T_min = 2.787 ns; `T=<value>` on the command line overrides it.
+- `sta/sta.tcl`: OpenSTA script with the seven steps (read_liberty with the `tt_025C_1v80` library, read_verilog of the Part B netlist, link_design, create_clock on `clk` with period T, 1 ns input and output delays, report_worst_slack, report_checks of the worst setup path). T is set to T_min = 2.788 ns; `T=<value>` on the command line overrides it.
 - `sta/mult_array_timing.rpt`: worst setup path of each path group at T = T_min.
 
 First run, at T = 10 ns:
@@ -142,15 +142,19 @@ First run, at T = 10 ns:
 T=10 sta -exit sta/sta.tcl          # worst slack max 7.213
 ```
 
-The slack of every path is T minus a fixed delay, so T_min = 10 − 7.213 = 2.787 ns and F_max = 1000 / 2.787 = 358.8 MHz. Second run, at T = T_min (the value set in the script):
+The slack of every path is T minus a fixed delay, so the minimum period is about 10 − 7.213 = 2.787 ns. Check run at that period:
 
 ```bash
-sta -exit sta/sta.tcl               # worst slack max -0.000
+T=2.787 sta -exit sta/sta.tcl       # worst slack max -0.000
 ```
 
-The report prints this slack as 0.000 (VIOLATED): it is negative by less than 0.5 ps, because 7.213 ns was itself rounded to 1 ps. To the 1 ps precision of the reports the slack at T_min is zero.
+The report prints this slack as 0.000 (VIOLATED): it is negative by less than 0.5 ps, because 7.213 ns was itself rounded to 1 ps, so the exact minimum period lies between 2.787 and 2.7875 ns. T_min is therefore rounded up to the next picosecond, T_min = 2.788 ns, and F_max = 1000 / 2.788 = 358.7 MHz. Final run, at T = T_min (the value set in the script):
 
-Critical path: from the input register `a_r[1]` (flip-flop `_91_`) to the output register `p[6]` (flip-flop `_88_`), arrival time 2.652 ns. It has 8 logic cells (`clkinv_1`, `o311ai_0`, `a21oi_1`, `maj3_1`, `xnor3_1`, `maj3_1`, `maj3_1`, `xor3_1`), which run from the row 1, bit 1 adder diagonally down to row 3 and along the row 3 carry chain to `p[6]`. Clock-to-Q (0.398 ns), the logic (2.254 ns) and the setup time (0.135 ns) add up to T_min. Latency 2 × T_min = 5.574 ns; throughput 358.8 million products per second.
+```bash
+sta -exit sta/sta.tcl               # worst slack max 0.001
+```
+
+Critical path: from the input register `a_r[1]` (flip-flop `_91_`) to the output register `p[6]` (flip-flop `_88_`), arrival time 2.652 ns. It has 8 logic cells (`clkinv_1`, `o311ai_0`, `a21oi_1`, `maj3_1`, `xnor3_1`, `maj3_1`, `maj3_1`, `xor3_1`), which run from the row 1, bit 1 adder diagonally down to row 3 and along the row 3 carry chain to `p[6]`. Clock-to-Q (0.398 ns), the logic (2.254 ns) and the setup time (0.135 ns) add up to 2.787 ns, just below T_min. Latency 2 × T_min = 5.576 ns; throughput 358.7 million products per second.
 
 ## D. Physical design
 

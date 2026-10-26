@@ -1,15 +1,17 @@
 # -----------------------------------------------------------------------------
 # sta.tcl: OpenSTA static timing analysis of the synthesized mult_array netlist
 # Run from the repository root:  sta -exit sta/sta.tcl
-# The clock period T (ns) is set below to T_min = 2.787 ns. T_min was found from
-# a first run at T = 10 ns (worst slack 7.213 ns, so T_min = 10 - 7.213):
-#   T=10 sta -exit sta/sta.tcl
+# The clock period T (ns) is set below to T_min = 2.788 ns, found as follows:
+#   T=10 sta -exit sta/sta.tcl      worst slack 7.213 ns, so 10 - 7.213 = 2.787
+#   T=2.787 sta -exit sta/sta.tcl   worst slack -0.000 ns (negative by < 0.5 ps,
+#                                   because 7.213 is rounded to 1 ps)
+# so T_min is rounded up to the next picosecond, 2.788 ns.
 # T=<value> on the command line overrides the period without editing the file.
 # Library: sky130_fd_sc_hd, typical corner (tt, 25 C, 1.80 V); ideal clock and
 # wires (no placement or routing yet)
 # -----------------------------------------------------------------------------
 set lib $::env(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-set T 2.787
+set T 2.788
 if {[info exists ::env(T)]} { set T $::env(T) }
 
 # 1. read the cell library
