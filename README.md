@@ -104,7 +104,30 @@ The simulation output of each step was also saved with `| tee` to log files outs
 
 ## B. Logic synthesis
 
-*Pending.*
+Files:
+
+- `synth/synth.tcl`: Yosys script with the seven steps (read_verilog, `synth -top mult_array -flatten`, dfflibmap, abc, `opt_clean -purge`, stat to a report, write_verilog), using the `tt_025C_1v80` Liberty file.
+- `synth/mult_array_netlist.v`: gate-level netlist of SKY130 cells, written by Yosys.
+- `synth/mult_array_stat.rpt`: cell count and area report, written by Yosys.
+
+Synthesis:
+
+```bash
+yosys -c synth/synth.tcl
+cat synth/mult_array_stat.rpt
+```
+
+Result: 61 cells, of which 16 are flip-flops (`sky130_fd_sc_hd__dfrtp_1`); total cell area 756.976 µm², of which 400.384 µm² (52.89 %) is flip-flops. The most-used cells are `dfrtp_1` (16), `nand2_1` (7), and `and2_0` and `maj3_1` (4 each). Yosys prints only warnings that ABC cannot use the multi-output library cells (such as `sky130_fd_sc_hd__fa_1`).
+
+Gate-level (netlist) simulation, with the same testbench and the SKY130 cell models:
+
+```bash
+CELLS=$PDK_ROOT/sky130A/libs.ref/sky130_fd_sc_hd/verilog
+iverilog -g2012 -DFUNCTIONAL -DUNIT_DELAY=#1 -o gls tb/tb_mult.v $CELLS/primitives.v $CELLS/sky130_fd_sc_hd.v synth/mult_array_netlist.v
+vvp gls                    # PASS: 256 vectors checked, 0 errors
+```
+
+The testbench needed no change for the netlist: it checks `p` at the falling clock edge, 5 ns after the rising edge, which is later than the 1 ns delay of the cell models.
 
 ## C. Static timing analysis
 
